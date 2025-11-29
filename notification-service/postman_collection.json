@@ -1,0 +1,120 @@
+{
+  "info": {
+    "name": "Notification Service API",
+    "description": "API collection for testing Slack notification endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3003/health",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3003",
+          "path": ["health"]
+        }
+      }
+    },
+    {
+      "name": "Test Slack Connection",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3003/api/slack/test",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3003",
+          "path": ["api", "slack", "test"]
+        }
+      }
+    },
+    {
+      "name": "List Channels",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3003/api/slack/channels",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3003",
+          "path": ["api", "slack", "channels"]
+        }
+      }
+    },
+    {
+      "name": "Send Simple Message",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"channelId\": \"C12345678\",\n  \"text\": \"Hello from Threat Intel Bot! This is a test message.\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3003/api/slack/send",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3003",
+          "path": ["api", "slack", "send"]
+        }
+      }
+    },
+    {
+      "name": "Send Threat Alert",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"channelId\": \"C12345678\",\n  \"alertData\": {\n    \"ioc\": \"malicious.example.com\",\n    \"iocType\": \"domain\",\n    \"verdict\": \"malicious\",\n    \"confidence\": 95,\n    \"sources\": {\n      \"VirusTotal\": {\n        \"verdict\": \"malicious\",\n        \"count\": 45\n      },\n      \"AbuseIPDB\": {\n        \"verdict\": \"suspicious\",\n        \"confidence\": 85\n      },\n      \"URLScan\": {\n        \"verdict\": \"malicious\"\n      }\n    },\n    \"timestamp\": \"2025-10-11T12:00:00Z\",\n    \"analyst\": \"AI Threat Intelligence\"\n  }\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3003/api/slack/alert",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3003",
+          "path": ["api", "slack", "alert"]
+        }
+      }
+    },
+    {
+      "name": "Send Custom Block Message",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"channelId\": \"C12345678\",\n  \"text\": \"Custom Alert\",\n  \"blocks\": [\n    {\n      \"type\": \"header\",\n      \"text\": {\n        \"type\": \"plain_text\",\n        \"text\": \"🎯 Security Alert\",\n        \"emoji\": true\n      }\n    },\n    {\n      \"type\": \"section\",\n      \"fields\": [\n        {\n          \"type\": \"mrkdwn\",\n          \"text\": \"*Severity:*\\nHigh\"\n        },\n        {\n          \"type\": \"mrkdwn\",\n          \"text\": \"*Status:*\\nActive\"\n        }\n      ]\n    },\n    {\n      \"type\": \"divider\"\n    },\n    {\n      \"type\": \"section\",\n      \"text\": {\n        \"type\": \"mrkdwn\",\n        \"text\": \"*Description:*\\nThis is a custom security alert with formatted blocks.\"\n      }\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3003/api/slack/blocks",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3003",
+          "path": ["api", "slack", "blocks"]
+        }
+      }
+    }
+  ]
+}
