@@ -2,7 +2,7 @@
 Enhanced Threat Intelligence Orchestrator
 
 This module orchestrates the collection of threat intelligence from multiple sources,
-including generic threat intel APIs, customer-specific ML models, and LLM analysis,
+including generic threat intel APIs and LLM analysis,
 then aggregates them into a final weighted verdict.
 """
 
@@ -10,7 +10,6 @@ from typing import Dict, Optional, Any, List
 from datetime import datetime
 
 from app.services.threat_intel_collector import ThreatIntelligenceCollector
-from app.services.ml_model_service import MLModelService
 from app.services.verdict_aggregation import (
     VerdictAggregationService,
     SourceVerdict,
@@ -27,16 +26,14 @@ class ThreatIntelOrchestrator:
     
     Workflow:
     1. Collect intelligence from generic sources (VirusTotal, AbuseIPDB, etc.)
-    2. Query customer-specific ML model if available
-    3. Optionally use LLM for analysis
-    4. Aggregate all verdicts with weighted scoring
-    5. Return final verdict with confidence and reasoning
+    2. Optionally use LLM for analysis
+    3. Aggregate all verdicts with weighted scoring
+    4. Return final verdict with confidence and reasoning
     """
     
     def __init__(
         self,
         config: Dict[str, str],
-        ml_models_path: Optional[str] = None,
         custom_weights: Optional[Dict] = None
     ):
         """
@@ -44,11 +41,9 @@ class ThreatIntelOrchestrator:
         
         Args:
             config: Configuration with API keys for threat intel sources
-            ml_models_path: Path to customer ML models directory
             custom_weights: Custom weights for verdict aggregation
         """
         self.threat_intel_collector = ThreatIntelligenceCollector(config)
-        self.ml_model_service = MLModelService(ml_models_path)
         self.verdict_aggregator = VerdictAggregationService(custom_weights)
         self.config = config
     
@@ -226,7 +221,6 @@ class ThreatIntelOrchestrator:
     def analyze_ioc(
         self,
         ioc: str,
-        customer_id: Optional[str] = None,
         ioc_type: Optional[str] = None,
         include_llm: bool = False
     ) -> AggregatedVerdict:
@@ -235,7 +229,6 @@ class ThreatIntelOrchestrator:
         
         Args:
             ioc: Indicator of Compromise to analyze
-            customer_id: Optional customer ID for customer-specific ML model
             ioc_type: Optional IOC type (auto-detected if not provided)
             include_llm: Whether to include LLM analysis (default: False for performance)
             
@@ -273,36 +266,14 @@ class ThreatIntelOrchestrator:
             if otx_verdict:
                 source_verdicts.append(otx_verdict)
         
-        # Prepare context data for ML model
-        context_data = {
-            'virustotal': vt_data if vt_data else {},
-            'abuseipdb': abuse_data if ioc_type == 'ip' and abuse_data else {},
-            'otx': otx_data if otx_data else {}
-        }
-        
-        # Step 2: Query customer-specific ML model if customer_id provided
-        if customer_id:
-            print(f"Querying customer-specific ML model for customer {customer_id}...")
-            ml_verdict = self.ml_model_service.predict(
-                customer_id=customer_id,
-                ioc=ioc,
-                ioc_type=ioc_type,
-                context_data=context_data
-            )
-            if ml_verdict:
-                source_verdicts.append(ml_verdict)
-                print(f"✓ Customer ML model prediction: {ml_verdict.threat_level.value} (confidence: {ml_verdict.confidence:.1%})")
-            else:
-                print(f"⚠ No ML model available for customer {customer_id}")
-        
-        # Step 3: LLM Analysis (optional, can be expensive)
+        # Step 2: LLM Analysis (optional, can be expensive)
         if include_llm:
             # TODO: Implement LLM analysis call
             # This would call your existing LLM threat classification
             print("LLM analysis not yet implemented in orchestrator")
             pass
         
-        # Step 4: Aggregate all verdicts
+        # Step 3: Aggregate all verdicts
         print(f"Aggregating {len(source_verdicts)} verdicts...")
         aggregated_verdict = self.verdict_aggregator.aggregate_verdicts(
             source_verdicts=source_verdicts,
@@ -315,7 +286,6 @@ class ThreatIntelOrchestrator:
     def analyze_ioc_detailed(
         self,
         ioc: str,
-        customer_id: Optional[str] = None,
         ioc_type: Optional[str] = None,
         include_llm: bool = False
     ) -> Dict[str, Any]:
@@ -324,7 +294,7 @@ class ThreatIntelOrchestrator:
         
         Returns both the verdict and detailed explanation of the scoring logic
         """
-        aggregated_verdict = self.analyze_ioc(ioc, customer_id, ioc_type, include_llm)
+        aggregated_verdict = self.analyze_ioc(ioc, ioc_type, include_llm)
         
         explanation = self.verdict_aggregator.explain_verdict(aggregated_verdict)
         
@@ -341,28 +311,4 @@ class ThreatIntelOrchestrator:
             'timestamp': aggregated_verdict.timestamp.isoformat()
         }
     
-    def get_customer_model_status(self, customer_id: str) -> Dict[str, Any]:
-        """
-        Check the status of a customer's ML model
-        
-        Args:
-            customer_id: Customer identifier
-            
-        Returns:
-            Dictionary with model availability status
-        """
-        model_types = ["random_forest", "gradient_boosting", "neural_network"]
-        
-        status = {
-            'customer_id': customer_id,
-            'models_available': {},
-            'has_any_model': False
-        }
-        
-        for model_type in model_types:
-            exists = self.ml_model_service.model_exists(customer_id, model_type)
-            status['models_available'][model_type] = exists
-            if exists:
-                status['has_any_model'] = True
-        
-        return status
+

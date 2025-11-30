@@ -4,8 +4,6 @@ import ScheduledAnalysis from "../models/ScheduledAnalysis.js";
 import ThreatAnalysis from "../models/ThreatAnalysis.js";
 
 const AI_SERVICE_URL = process.env.AI_SERVICE_URL || "http://localhost:8000";
-const NOTIFICATION_SERVICE_URL =
-  process.env.NOTIFICATION_SERVICE_URL || "http://localhost:4000";
 
 class SchedulerService {
   constructor() {
@@ -21,7 +19,6 @@ class SchedulerService {
 
     console.log("\n📅 Starting Scheduler Service...");
     console.log(`🔧 AI Service URL: ${AI_SERVICE_URL}`);
-    console.log(`🔧 Notification Service URL: ${NOTIFICATION_SERVICE_URL}`);
     console.log("⏰ Cron job will run every minute (* * * * *)");
 
     // Run every minute
@@ -139,9 +136,6 @@ class SchedulerService {
 
       console.log(`✅ Analysis completed for: ${schedule.ioc} (${verdict})`);
 
-      // Send Slack notification
-      await this.sendNotification(schedule, threatAnalysis, analysisResult);
-
       // Handle recurrence
       if (schedule.recurrence !== "once") {
         await this.scheduleNextOccurrence(schedule);
@@ -187,95 +181,6 @@ class SchedulerService {
     }
   }
 
-  // Send Slack notification about completed analysis
-  async sendNotification(schedule, threatAnalysis, analysisResult) {
-    try {
-      if (!schedule.user.email) {
-        console.log("⚠️  No user email found for notification");
-        return;
-      }
-
-      const verdict = analysisResult.final_verdict?.verdict || "UNKNOWN";
-      const confidence = analysisResult.final_verdict?.confidence_score || 0;
-      const reasoning =
-        analysisResult.final_verdict?.reasoning || "No reasoning available";
-      const iocType = analysisResult.ioc_type || "unknown";
-
-      const message = {
-        channel: schedule.slackChannelId || "#threat-intel",
-        text: `🔔 Scheduled IOC Analysis Complete`,
-        blocks: [
-          {
-            type: "header",
-            text: {
-              type: "plain_text",
-              text: "🔔 Scheduled IOC Analysis Complete",
-            },
-          },
-          {
-            type: "section",
-            fields: [
-              {
-                type: "mrkdwn",
-                text: `*IOC:*\n\`${schedule.ioc}\``,
-              },
-              {
-                type: "mrkdwn",
-                text: `*Type:*\n${iocType}`,
-              },
-              {
-                type: "mrkdwn",
-                text: `*Verdict:*\n${verdict}`,
-              },
-              {
-                type: "mrkdwn",
-                text: `*Confidence:*\n${Math.round(confidence)}%`,
-              },
-            ],
-          },
-          {
-            type: "section",
-            text: {
-              type: "mrkdwn",
-              text: `*Analysis:*\n${reasoning}`,
-            },
-          },
-          {
-            type: "context",
-            elements: [
-              {
-                type: "mrkdwn",
-                text: `Scheduled by: ${
-                  schedule.user.email
-                } | Executed: ${new Date().toLocaleString()}`,
-              },
-            ],
-          },
-        ],
-      };
-
-      const response = await axios.post(
-        `${NOTIFICATION_SERVICE_URL}/api/slack/send`,
-        message,
-        {
-          timeout: 10000,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      // Mark notification as sent
-      schedule.notificationSent = true;
-      await schedule.save();
-
-      console.log(`📬 Slack notification sent for: ${schedule.ioc}`);
-    } catch (error) {
-      console.error(`⚠️  Failed to send Slack notification:`, error.message);
-      // Don't fail the entire job if notification fails
-    }
-  }
-
   // Schedule the next occurrence for recurring analyses
   async scheduleNextOccurrence(originalSchedule) {
     try {
@@ -303,7 +208,6 @@ class SchedulerService {
         recurrence: originalSchedule.recurrence,
         user: originalSchedule.user,
         notes: originalSchedule.notes,
-        slackChannelId: originalSchedule.slackChannelId,
       });
 
       await newSchedule.save();

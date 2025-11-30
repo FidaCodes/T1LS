@@ -34,8 +34,3 @@ python-dateutil==2.9.0
 
 # Security
 cryptography==44.0.0
-
-# ML Dependencies (for ml_model_service.py)
-numpy==2.2.1
-scikit-learn==1.6.0
-joblib==1.4.2

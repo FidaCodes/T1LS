@@ -13,7 +13,6 @@ from app.models import (
 )
 from app.services.threat_intel_collector import ThreatIntelligenceCollector
 from app.services.threat_classifier import ThreatClassifier
-from app.services.slack_notification_service import get_slack_service
 from app.core.config import Settings, get_threat_intel_config
 
 logger = logging.getLogger(__name__)
@@ -490,24 +489,6 @@ async def analyze_ioc(
             processing_time_ms=processing_time
         )
         
-        # Send Slack notification (non-blocking)
-        try:
-            if classification:
-                analysis_result = {
-                    'ioc': request.ioc,
-                    'ioc_type': intel_data.get('ioc_type', 'Unknown'),
-                    'verdict': classification.get('classification', 'UNKNOWN'),
-                    'confidence_score': classification.get('confidence_score', 0),
-                    'reasoning': classification.get('reasoning', ''),
-                    'sources': intel_data.get('sources', {}),
-                    'timestamp': datetime.now().isoformat()
-                }
-                
-                get_slack_service().send_analysis_alert(analysis_result)
-        except Exception as e:
-            logger.error(f"Failed to send Slack notification: {str(e)}")
-            # Don't fail the request if Slack notification fails
-        
         return response
         
     except Exception as e:
@@ -704,25 +685,6 @@ async def analyze_all_sources(
             },
             "processing_time_ms": int((time.time() - start_time) * 1000)
         }
-        
-        # Send Slack notification (non-blocking)
-        try:
-            if len(successful_sources) > 0:
-                analysis_result = {
-                    'ioc': original_ioc,
-                    'ioc_type': ioc_type,
-                    'analyzed_value': sanitized_ioc if ioc_type == 'url' else original_ioc,
-                    'verdict': final_verdict,
-                    'confidence_score': final_confidence,
-                    'reasoning': final_reasoning,
-                    'sources': sources_results,
-                    'timestamp': datetime.now().isoformat()
-                }
-                
-                get_slack_service().send_analysis_alert(analysis_result)
-        except Exception as e:
-            logger.error(f"Failed to send Slack notification: {str(e)}")
-            # Don't fail the request if Slack notification fails
         
         return response_data
         

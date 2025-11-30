@@ -39,13 +39,6 @@ const scheduledAnalysisSchema = new mongoose.Schema(
     error: {
       type: String,
     },
-    notificationSent: {
-      type: Boolean,
-      default: false,
-    },
-    slackChannelId: {
-      type: String,
-    },
     notes: {
       type: String,
       maxlength: 500,

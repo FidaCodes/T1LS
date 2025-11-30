@@ -4,7 +4,7 @@ import ThreatAnalysis from "../models/ThreatAnalysis.js";
 // Create a new scheduled analysis
 export const createScheduledAnalysis = async (req, res) => {
   try {
-    const { ioc, scheduledFor, recurrence, notes, slackChannelId } = req.body;
+    const { ioc, scheduledFor, recurrence, notes } = req.body;
 
     // Validate scheduledFor is in the future
     const scheduleDate = new Date(scheduledFor);
@@ -20,7 +20,6 @@ export const createScheduledAnalysis = async (req, res) => {
       recurrence: recurrence || "once",
       user: req.user.id,
       notes,
-      slackChannelId,
     });
 
     await scheduledAnalysis.save();
@@ -97,7 +96,7 @@ export const getScheduleById = async (req, res) => {
 export const updateSchedule = async (req, res) => {
   try {
     const { id } = req.params;
-    const { scheduledFor, notes, slackChannelId, recurrence } = req.body;
+    const { scheduledFor, notes, recurrence } = req.body;
 
     const schedule = await ScheduledAnalysis.findById(id);
 
@@ -133,7 +132,6 @@ export const updateSchedule = async (req, res) => {
     }
 
     if (notes !== undefined) schedule.notes = notes;
-    if (slackChannelId !== undefined) schedule.slackChannelId = slackChannelId;
     if (recurrence !== undefined) schedule.recurrence = recurrence;
 
     await schedule.save();

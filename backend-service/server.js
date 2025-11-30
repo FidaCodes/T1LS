@@ -5,8 +5,6 @@ import authRoutes from "./routes/authRoutes.js";
 import threatIntelRoutes from "./routes/threatIntelRoutes.js";
 import schedulerRoutes from "./routes/schedulerRoutes.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
-import developerRoutes from "./routes/developerRoutes.js";
-import assetRoutes from "./routes/assetRoutes.js";
 import reportRoutes from "./routes/reportRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import connectDB from "./configs/mongodb.js";
@@ -27,8 +25,6 @@ app.use("/api/auth", authRoutes);
 app.use("/api/threat-intel", threatIntelRoutes);
 app.use("/api/scheduler", schedulerRoutes);
 app.use("/api/analytics", analyticsRoutes);
-app.use("/api/developer", developerRoutes);
-app.use("/api/asset-intel", assetRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/admin", adminRoutes);
 

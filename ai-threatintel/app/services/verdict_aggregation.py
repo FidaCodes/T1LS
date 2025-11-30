@@ -3,7 +3,6 @@ Verdict Aggregation Service
 
 This service aggregates threat intelligence verdicts from multiple sources:
 - Generic threat intel sources (VirusTotal, AbuseIPDB, etc.)
-- Customer-specific ML models
 - LLM-based analysis
 
 It provides a weighted scoring system to determine the final verdict with confidence levels.
@@ -28,7 +27,6 @@ class ThreatLevel(Enum):
 class SourceType(Enum):
     """Types of intelligence sources"""
     GENERIC_THREAT_INTEL = "generic_threat_intel"
-    CUSTOMER_ML_MODEL = "customer_ml_model"
     LLM_ANALYSIS = "llm_analysis"
 
 
@@ -82,7 +80,6 @@ class VerdictAggregationService:
             'PhishTank': 0.70,
             'default': 0.60
         },
-        SourceType.CUSTOMER_ML_MODEL: 0.90,  # Higher weight for customer-specific context
         SourceType.LLM_ANALYSIS: 0.75
     }
     
@@ -315,15 +312,6 @@ class VerdictAggregationService:
             sources_str = ", ".join([sv.source_name for sv in high_confidence_sources[:3]])
             reasoning_parts.append(f"High-confidence threats detected by: {sources_str}.")
         
-        # Customer ML model emphasis
-        ml_verdicts = [sv for sv in source_verdicts if sv.source_type == SourceType.CUSTOMER_ML_MODEL]
-        if ml_verdicts:
-            ml_verdict = ml_verdicts[0]
-            reasoning_parts.append(
-                f"Customer-specific ML model indicates {ml_verdict.threat_level.value} "
-                f"threat with {ml_verdict.confidence:.1%} confidence."
-            )
-        
         return " ".join(reasoning_parts)
     
     def aggregate_verdicts(
@@ -387,7 +375,6 @@ class VerdictAggregationService:
             'total_sources': len(source_verdicts),
             'sources_by_type': {
                 'generic': len([sv for sv in source_verdicts if sv.source_type == SourceType.GENERIC_THREAT_INTEL]),
-                'customer_ml': len([sv for sv in source_verdicts if sv.source_type == SourceType.CUSTOMER_ML_MODEL]),
                 'llm': len([sv for sv in source_verdicts if sv.source_type == SourceType.LLM_ANALYSIS])
             },
             'disagreement_applied': final_verdict != initial_verdict
