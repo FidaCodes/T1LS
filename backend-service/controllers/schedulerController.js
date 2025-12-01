@@ -96,7 +96,7 @@ export const getScheduleById = async (req, res) => {
 export const updateSchedule = async (req, res) => {
   try {
     const { id } = req.params;
-    const { scheduledFor, notes, recurrence } = req.body;
+    const { scheduledFor, notes, recurrence, status } = req.body;
 
     const schedule = await ScheduledAnalysis.findById(id);
 
@@ -113,8 +113,19 @@ export const updateSchedule = async (req, res) => {
       });
     }
 
-    // Can only update pending schedules
-    if (schedule.status !== "pending") {
+    // Allow resuming cancelled schedules (changing status from cancelled to pending)
+    if (status !== undefined) {
+      if (status === "pending" && schedule.status === "cancelled") {
+        schedule.status = "pending";
+      } else if (schedule.status !== "pending") {
+        return res.status(400).json({
+          message: `Cannot update ${schedule.status} schedule`,
+        });
+      }
+    }
+
+    // Can only update pending schedules (unless we're resuming a cancelled one)
+    if (schedule.status !== "pending" && schedule.status !== "cancelled") {
       return res.status(400).json({
         message: `Cannot update ${schedule.status} schedule`,
       });

@@ -155,11 +155,11 @@ const DashboardPage = () => {
         return;
       }
 
-      if (iocs.length > 10000) {
-        setError("Maximum 10,000 observables per file");
-        setBulkLoading(false);
-        return;
-      }
+      // if (iocs.length > 10000) {
+      //   setError("Maximum 10,000 observables per file");
+      //   setBulkLoading(false);
+      //   return;
+      // }
 
       setBulkProgress({ current: 0, total: iocs.length });
 
@@ -486,10 +486,6 @@ const DashboardPage = () => {
                 <li className="flex items-start gap-2">
                   <span className="text-blue-400 mt-1">•</span>
                   <span>One observable per line</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-400 mt-1">•</span>
-                  <span>Maximum 10,000 observables per file</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-blue-400 mt-1">•</span>

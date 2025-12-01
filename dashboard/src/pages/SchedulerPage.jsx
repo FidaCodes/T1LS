@@ -18,8 +18,8 @@ const SchedulerPage = () => {
     scheduledFor: "",
     recurrence: "once",
     notes: "",
-    slackChannelId: "#threat-intel",
   });
+  const [editingSchedule, setEditingSchedule] = useState(null);
   const [formError, setFormError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [includeCompleted, setIncludeCompleted] = useState(false);
@@ -59,16 +59,24 @@ const SchedulerPage = () => {
       return;
     }
 
-    // Validate date is in the future
-    const scheduleDate = new Date(formData.scheduledFor);
-    if (scheduleDate <= new Date()) {
-      setFormError("Scheduled time must be in the future");
-      return;
+    // Validate date is in the future (only for new schedules)
+    if (!editingSchedule) {
+      const scheduleDate = new Date(formData.scheduledFor);
+      if (scheduleDate <= new Date()) {
+        setFormError("Scheduled time must be in the future");
+        return;
+      }
     }
 
     setSubmitting(true);
     try {
-      await schedulerService.createSchedule(formData);
+      if (editingSchedule) {
+        // Update existing schedule
+        await schedulerService.updateSchedule(editingSchedule._id, formData);
+      } else {
+        // Create new schedule
+        await schedulerService.createSchedule(formData);
+      }
 
       // Reset form
       setFormData({
@@ -76,9 +84,9 @@ const SchedulerPage = () => {
         scheduledFor: "",
         recurrence: "once",
         notes: "",
-        slackChannelId: "#threat-intel",
       });
       setShowCreateForm(false);
+      setEditingSchedule(null);
 
       // Refresh data
       await fetchData();
@@ -115,6 +123,28 @@ const SchedulerPage = () => {
     } catch (error) {
       alert("Failed to delete schedule");
     }
+  };
+
+  const handleResumeSchedule = async (id) => {
+    try {
+      await schedulerService.updateSchedule(id, { status: "pending" });
+      await fetchData();
+    } catch (error) {
+      alert("Failed to resume schedule");
+    }
+  };
+
+  const handleConfigureSchedule = (schedule) => {
+    setEditingSchedule(schedule);
+    setFormData({
+      ioc: schedule.ioc,
+      scheduledFor: new Date(schedule.scheduledFor).toISOString().slice(0, 16),
+      recurrence: schedule.recurrence,
+      notes: schedule.notes || "",
+    });
+    setShowCreateForm(true);
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const getStatusBadgeVariant = (status) => {
@@ -195,7 +225,18 @@ const SchedulerPage = () => {
               </div>
               <Button
                 variant="primary"
-                onClick={() => setShowCreateForm(!showCreateForm)}
+                onClick={() => {
+                  setShowCreateForm(!showCreateForm);
+                  if (showCreateForm) {
+                    setEditingSchedule(null);
+                    setFormData({
+                      ioc: "",
+                      scheduledFor: "",
+                      recurrence: "once",
+                      notes: "",
+                    });
+                  }
+                }}
               >
                 <svg
                   className="w-5 h-5"
@@ -219,7 +260,7 @@ const SchedulerPage = () => {
           {showCreateForm && (
             <div className="mb-8 bg-[#0f1f3a] rounded-xl p-6 border border-gray-700">
               <h2 className="text-xl font-bold text-white mb-4">
-                Add New Monitor
+                {editingSchedule ? "Edit Monitor" : "Add New Monitor"}
               </h2>
               <form onSubmit={handleCreateSchedule} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -281,23 +322,6 @@ const SchedulerPage = () => {
                       disabled={submitting}
                     />
                   </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-1">
-                      Slack Channel
-                    </label>
-                    <Input
-                      placeholder="#threat-intel"
-                      value={formData.slackChannelId}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          slackChannelId: e.target.value,
-                        })
-                      }
-                      disabled={submitting}
-                    />
-                  </div>
                 </div>
 
                 <div>
@@ -330,12 +354,21 @@ const SchedulerPage = () => {
                     loading={submitting}
                     disabled={submitting}
                   >
-                    Create Monitor
+                    {editingSchedule ? "Update Monitor" : "Create Monitor"}
                   </Button>
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => setShowCreateForm(false)}
+                    onClick={() => {
+                      setShowCreateForm(false);
+                      setEditingSchedule(null);
+                      setFormData({
+                        ioc: "",
+                        scheduledFor: "",
+                        recurrence: "once",
+                        notes: "",
+                      });
+                    }}
                     disabled={submitting}
                   >
                     Cancel
@@ -433,8 +466,8 @@ const SchedulerPage = () => {
                       <div>
                         <p className="text-xs text-gray-500 mb-1">Last Scan:</p>
                         <p className="text-sm text-white">
-                          {schedule.executedAt
-                            ? new Date(schedule.executedAt).toLocaleString(
+                          {schedule.lastRun
+                            ? new Date(schedule.lastRun).toLocaleString(
                                 "en-US",
                                 {
                                   month: "short",
@@ -463,6 +496,15 @@ const SchedulerPage = () => {
                                 }
                               )
                             : "Not scheduled"}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">
+                          Total Scans:
+                        </p>
+                        <p className="text-sm text-white font-semibold">
+                          {schedule.totalScans || 0}
                         </p>
                       </div>
 
@@ -511,7 +553,10 @@ const SchedulerPage = () => {
                           Pause
                         </button>
                       ) : schedule.status === "cancelled" ? (
-                        <button className="flex-1 px-3 py-2 text-xs font-medium text-green-400 bg-green-900/30 hover:bg-green-900/50 rounded-lg transition-colors flex items-center justify-center gap-1">
+                        <button 
+                          onClick={() => handleResumeSchedule(schedule._id)}
+                          className="flex-1 px-3 py-2 text-xs font-medium text-green-400 bg-green-900/30 hover:bg-green-900/50 rounded-lg transition-colors flex items-center justify-center gap-1"
+                        >
                           <svg
                             className="w-4 h-4"
                             fill="none"
@@ -535,7 +580,10 @@ const SchedulerPage = () => {
                         </button>
                       ) : null}
 
-                      <button className="flex-1 px-3 py-2 text-xs font-medium text-gray-300 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors flex items-center justify-center gap-1">
+                      <button 
+                        onClick={() => handleConfigureSchedule(schedule)}
+                        className="flex-1 px-3 py-2 text-xs font-medium text-gray-300 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors flex items-center justify-center gap-1"
+                      >
                         <svg
                           className="w-4 h-4"
                           fill="none"

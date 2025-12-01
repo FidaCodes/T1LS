@@ -131,15 +131,10 @@ class SchedulerService {
 
       await threatAnalysis.save();
 
-      // Mark schedule as completed
-      await schedule.markAsCompleted(threatAnalysis._id);
-
       console.log(`✅ Analysis completed for: ${schedule.ioc} (${verdict})`);
 
-      // Handle recurrence
-      if (schedule.recurrence !== "once") {
-        await this.scheduleNextOccurrence(schedule);
-      }
+      // Handle recurrence - update the schedule for next run instead of marking completed
+      await this.rescheduleAnalysis(schedule);
     } catch (error) {
       console.error(
         `❌ Error executing analysis for ${schedule.ioc}:`,
@@ -181,42 +176,41 @@ class SchedulerService {
     }
   }
 
-  // Schedule the next occurrence for recurring analyses
-  async scheduleNextOccurrence(originalSchedule) {
+  // Reschedule the analysis for next run
+  async rescheduleAnalysis(schedule) {
     try {
-      let nextScheduledFor = new Date(originalSchedule.scheduledFor);
+      let nextScheduledFor = new Date();
 
-      // Calculate next run time based on recurrence
-      switch (originalSchedule.recurrence) {
-        case "hourly":
-          nextScheduledFor.setHours(nextScheduledFor.getHours() + 1);
+      // Calculate next run time based on recurrence (matching UI labels)
+      switch (schedule.recurrence) {
+        case "hourly": // Every 6 hours
+          nextScheduledFor.setHours(nextScheduledFor.getHours() + 6);
           break;
-        case "daily":
-          nextScheduledFor.setDate(nextScheduledFor.getDate() + 1);
+        case "daily": // Every 12 hours
+          nextScheduledFor.setHours(nextScheduledFor.getHours() + 12);
           break;
-        case "weekly":
-          nextScheduledFor.setDate(nextScheduledFor.getDate() + 7);
+        case "once": // Every 24 hours
+          nextScheduledFor.setHours(nextScheduledFor.getHours() + 24);
+          break;
+        case "weekly": // Every 48 hours
+          nextScheduledFor.setHours(nextScheduledFor.getHours() + 48);
           break;
         default:
-          return; // No recurrence
+          nextScheduledFor.setHours(nextScheduledFor.getHours() + 24);
       }
 
-      // Create new scheduled analysis
-      const newSchedule = new ScheduledAnalysis({
-        ioc: originalSchedule.ioc,
-        scheduledFor: nextScheduledFor,
-        recurrence: originalSchedule.recurrence,
-        user: originalSchedule.user,
-        notes: originalSchedule.notes,
-      });
-
-      await newSchedule.save();
+      // Update the same schedule for next run
+      schedule.scheduledFor = nextScheduledFor;
+      schedule.status = "pending";
+      schedule.lastRun = new Date();
+      schedule.totalScans = (schedule.totalScans || 0) + 1;
+      await schedule.save();
 
       console.log(
-        `🔁 Next occurrence scheduled for: ${nextScheduledFor.toLocaleString()}`
+        `🔁 Rescheduled for: ${nextScheduledFor.toLocaleString()} (Recurrence: ${schedule.recurrence})`
       );
     } catch (error) {
-      console.error("❌ Error scheduling next occurrence:", error);
+      console.error("❌ Error rescheduling analysis:", error);
     }
   }
 }

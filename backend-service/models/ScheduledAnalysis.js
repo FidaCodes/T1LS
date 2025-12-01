@@ -36,6 +36,13 @@ const scheduledAnalysisSchema = new mongoose.Schema(
     executedAt: {
       type: Date,
     },
+    lastRun: {
+      type: Date,
+    },
+    totalScans: {
+      type: Number,
+      default: 0,
+    },
     error: {
       type: String,
     },

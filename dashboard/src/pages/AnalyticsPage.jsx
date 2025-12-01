@@ -160,7 +160,7 @@ const AnalyticsPage = () => {
           padding: 20,
           font: { size: 13 },
           usePointStyle: true,
-          color: "#e5e7eb",
+          color: "#ffffff",
           generateLabels: (chart) => {
             const data = chart.data;
             return data.labels.map((label, i) => {
@@ -171,6 +171,7 @@ const AnalyticsPage = () => {
                 fillStyle: data.datasets[0].backgroundColor[i],
                 hidden: false,
                 index: i,
+                fontColor: "#ffffff",
               };
             });
           },
