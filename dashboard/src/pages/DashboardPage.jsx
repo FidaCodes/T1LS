@@ -95,6 +95,38 @@ const DashboardPage = () => {
     setError("");
   };
 
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const droppedFile = e.dataTransfer.files?.[0];
+    if (!droppedFile) return;
+
+    const fileExtension = droppedFile.name.split(".").pop()?.toLowerCase();
+    if (!["txt", "csv"].includes(fileExtension)) {
+      setError("Only TXT and CSV files are supported");
+      return;
+    }
+
+    setFile(droppedFile);
+    setError("");
+  };
+
   const handleBulkAnalysis = async () => {
     if (!file) {
       setError("Please select a file to upload");
@@ -397,6 +429,10 @@ const DashboardPage = () => {
             <div
               className="border-2 border-dashed border-gray-600 rounded-xl p-12 text-center hover:border-blue-500 transition-colors cursor-pointer"
               onClick={() => fileInputRef.current?.click()}
+              onDragOver={handleDragOver}
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
             >
               <div className="flex flex-col items-center">
                 <div className="w-16 h-16 bg-blue-600/20 rounded-full flex items-center justify-center mb-4">

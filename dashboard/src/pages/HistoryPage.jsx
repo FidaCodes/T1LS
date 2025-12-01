@@ -153,13 +153,17 @@ const HistoryPage = () => {
           analysis.verdict,
           analysis.confidenceScore
         );
+        const sourcesCount =
+          analysis.sources && typeof analysis.sources === "object"
+            ? Object.keys(analysis.sources).length
+            : 0;
         return [
           analysis.ioc,
           analysis.iocType,
           analysis.verdict,
           `${analysis.confidenceScore}%`,
           severity.label,
-          analysis.sources?.length || 0,
+          sourcesCount,
           formatTimestamp(analysis.createdAt),
           analysis.details?.description || "",
         ];
@@ -444,7 +448,11 @@ const HistoryPage = () => {
                         </td>
                         <td className="py-4 px-6">
                           <span className="text-sm text-gray-300">
-                            {analysis.sources?.length || 0} sources
+                            {analysis.sources &&
+                            typeof analysis.sources === "object"
+                              ? Object.keys(analysis.sources).length
+                              : 0}{" "}
+                            sources
                           </span>
                         </td>
                         <td className="py-4 px-6">
@@ -467,6 +475,33 @@ const HistoryPage = () => {
                         </td>
                         <td className="py-4 px-6">
                           <div className="flex items-center gap-2">
+                            <button
+                              onClick={() =>
+                                navigate(`/history/${analysis._id}`)
+                              }
+                              className="p-2 hover:bg-blue-900/30 rounded-lg transition-colors"
+                              title="View details"
+                            >
+                              <svg
+                                className="w-4 h-4 text-gray-400 hover:text-blue-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                />
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                />
+                              </svg>
+                            </button>
                             <button
                               onClick={() =>
                                 handleCopyToClipboard(analysis.ioc)

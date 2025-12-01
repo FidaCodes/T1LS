@@ -8,6 +8,7 @@ import DashboardPage from "./pages/DashboardPage";
 import SchedulerPage from "./pages/SchedulerPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import HistoryPage from "./pages/HistoryPage";
+import HistoryDetailsPage from "./pages/HistoryDetailsPage";
 import ReportsPage from "./pages/ReportsPage";
 import AdminPage from "./pages/AdminPage";
 import { AssetIntelPage } from "./pages/AssetIntelPage";
@@ -41,6 +42,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <HistoryPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/history/:id"
+              element={
+                <ProtectedRoute>
+                  <HistoryDetailsPage />
                 </ProtectedRoute>
               }
             />
