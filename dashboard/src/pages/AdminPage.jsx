@@ -17,7 +17,7 @@ const AdminPage = () => {
     password: "",
     role: "analyst",
   });
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   useEffect(() => {
     if (activeTab === "users") {
@@ -97,6 +97,42 @@ const AdminPage = () => {
         <Navbar onLogout={logout} />
         <div className="flex items-center justify-center h-[calc(100vh-4rem)] mt-16">
           <LoadingSpinner size="lg" />
+        </div>
+      </div>
+    );
+  }
+
+  // Check if user is not an admin and show only error message
+  if (user && user.role !== "admin") {
+    return (
+      <div className="min-h-screen bg-[#0a1628]">
+        <Navbar onLogout={logout} />
+        <div className="pt-24 px-8 py-8 max-w-[1400px] mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-white mb-2">Administration</h1>
+            <p className="text-gray-400">
+              Role-based access control and system management
+            </p>
+          </div>
+
+          {/* Access Denied Message */}
+          <div className="bg-red-900/30 border border-red-800 text-red-400 px-6 py-4 rounded-lg flex items-start gap-3">
+            <svg
+              className="w-6 h-6 mt-0.5 flex-shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <span>Access denied. Admin privileges required.</span>
+          </div>
         </div>
       </div>
     );
