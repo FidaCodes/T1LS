@@ -147,7 +147,7 @@ const LoginPage = () => {
         </Card>
 
         <p className="text-center text-sm text-gray-500 dark:text-gray-500 mt-8">
-          Kuwait Vision 2035 • AI Threat Intelligence
+          T1LS • AI Driven Threat Intelligence System
         </p>
       </div>
     </div>

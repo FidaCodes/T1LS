@@ -209,7 +209,7 @@ const RegisterPage = () => {
         </Card>
 
         <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-8">
-          Kuwait Vision 2035 • AI Threat Intelligence
+          T1LS • AI Driven Threat Intelligence System
         </p>
       </div>
     </div>
