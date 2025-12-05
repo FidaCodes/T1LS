@@ -895,7 +895,7 @@ export const Drawer = ({ isOpen, onClose, data, title }) => {
         <div className="border-t border-gray-200 dark:border-gray-700 p-4 shrink-0">
           <button
             onClick={onClose}
-            className="w-full px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-medium rounded-lg transition-colors"
+            className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
           >
             Close
           </button>

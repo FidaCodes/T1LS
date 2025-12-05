@@ -4,7 +4,6 @@ import { useAuth } from "../context/AuthContext";
 import { Button } from "../components/Button";
 import { Input } from "../components/Input";
 import { Card } from "../components/Card";
-import { ThemeToggle } from "../components/ThemeToggle";
 
 const RegisterPage = () => {
   const [username, setUsername] = useState("");
@@ -46,12 +45,7 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-white to-cyan-100 dark:from-gray-900 dark:via-cyan-900/20 dark:to-gray-900 flex items-center justify-center p-4">
-      {/* Theme Toggle - Top Right */}
-      <div className="absolute top-4 right-4">
-        <ThemeToggle />
-      </div>
-
+    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-white to-cyan-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo/Header */}
         <div className="text-center mb-8">
@@ -78,7 +72,7 @@ const RegisterPage = () => {
           </p>
         </div>
 
-        <Card className="backdrop-blur-sm bg-white/80 dark:bg-gray-800/80">
+        <Card className="backdrop-blur-sm bg-white/90 dark:bg-gray-800/90 border dark:border-gray-700">
           <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
               <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg">

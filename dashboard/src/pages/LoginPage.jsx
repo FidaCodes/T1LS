@@ -4,7 +4,6 @@ import { useAuth } from "../context/AuthContext";
 import { Button } from "../components/Button";
 import { Input } from "../components/Input";
 import { Card } from "../components/Card";
-import { ThemeToggle } from "../components/ThemeToggle";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -34,11 +33,6 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-white to-cyan-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
-      {/* Theme Toggle - Top Right */}
-      <div className="absolute top-4 right-4">
-        <ThemeToggle />
-      </div>
-
       <div className="w-full max-w-md">
         {/* Logo/Header */}
         <div className="text-center mb-8">
